@@ -1,5 +1,6 @@
 import battleship
 import simulate
+import numpy as np
 
 
 def main():
@@ -15,6 +16,12 @@ def main():
 
     gamma = 0.999
     d = 16
+    Q = np.zeros((board_width*board_height, board_width*board_height))
+    N = np.zeros((board_width*board_height, board_width*board_height))
+    A = []
+    for i in range(board_width):
+        for j in range(board_height):
+            A.append((i,j))
     r = simulate.rollout(b,gamma,d)
     
 

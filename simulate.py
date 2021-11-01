@@ -1,5 +1,22 @@
 import random
 import numpy as np
+import math
+
+def explore(A, N, Q, c, s):
+    # N: visit counts for each state-action pair
+    # Q: action value estimates for each state-action pair
+    # c: exploration constant
+    # s: current state
+    # A: action space
+    numVisits = sum(N[s, a] for a in A)
+    maxVal = -1*float("Inf")
+    maxA = None
+    for a in A:
+        val = Q[s, a] + c * math.sqrt(math.log(numVisits) / N[s, a])
+        if val > maxVal:
+            maxVal = val
+            maxA = a
+    return maxA
 
 def state_action_sim(b,*args):
     """Compute the gradient of the loss with respect to theta."""
