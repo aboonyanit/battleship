@@ -54,7 +54,14 @@ def MCTS(s, board_width, board_height, ship_sizes, c, d, discount_factor, k_max)
         # Q = np.zeros((board_width*board_height, board_width*board_height)) #why are these dimensions? 3 **, 
         # N = np.zeros((board_width*board_height, board_width*board_height))
         sim(d, s, A, discount_factor, c, Q, N, ship_sizes)
-    return np.argmax(Q(s,a) for a in A) #<-- idk if this will work??
+    max_Q_val = -float('inf')
+    max_A = A[0]
+    for a in A:
+        if Q[(s, a)] > max_Q_val:
+            max_Q_val = Q[(s, a)]
+            max_A = a
+    return max_A
+    # return np.argmax(Q(s,a) for a in A) #<-- idk if this will work??
 
 # Add function to map State (number) to the board
     
