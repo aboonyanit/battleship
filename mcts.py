@@ -11,20 +11,37 @@ def main():
     b = battleship.Battleship(board_width,board_height, ship_sizes)
     b.generateRandomBoard()
 
+    # run to test state_action_sim
     # a = [1,1] #example of an action
-    # b,r = simulate.state_action_sim(b,a)
+    # s,r = simulate.state_action_sim(b._boardHitMiss,b.ship_sizes,a)
 
-    gamma = 0.999
-    d = 16
-    Q = np.zeros((board_width*board_height, board_width*board_height))
-    N = np.zeros((board_width*board_height, board_width*board_height))
-    A = []
-    for i in range(board_width):
-        for j in range(board_height):
-            A.append((i,j))
-    r = simulate.rollout(b._boardHitMiss,gamma,d)
+    # run to test rollout
+    # gamma = 0.999
+    # d = 16
+    # r = simulate.rollout(b._boardHitMiss,gamma,d)
+
+    #Not sure what this commented out code is for...
+    # gamma = 0.999
+    # d = 16
+    # Q = np.zeros((board_width*board_height, board_width*board_height))
+    # N = np.zeros((board_width*board_height, board_width*board_height))
+    # A = []
+    # for i in range(board_width):
+    #     for j in range(board_height):
+    #         A.append((i,j))
+    # r = simulate.rollout(b._boardHitMiss,gamma,d)
+
     s = b._boardHitMiss
-    MCTS(s, board_width, board_height, ship_sizes, c=1, d=10, discount_factor=0.95, k_max=10)
+    print(s)
+    while np.sum(b._boardHitMiss > 0) > board_width*board_height:
+        a = MCTS(s, board_width, board_height, ship_sizes, c=1, d=10, discount_factor=0.95, k_max=10)
+        if b._boardShipLocations[a[0],a[1]] == 1:
+            b._boardHitMiss[a[0],a[1]] == 2
+        else:
+            b._boardHitMiss[a[0],a[1]] == 1
+        s = b._boardHitMiss
+        print(s)
+
 
 def MCTS(s, board_width, board_height, ship_sizes, c, d, discount_factor, k_max):
     A = []
@@ -36,12 +53,12 @@ def MCTS(s, board_width, board_height, ship_sizes, c, d, discount_factor, k_max)
     for k in range(k_max):
         # Q = np.zeros((board_width*board_height, board_width*board_height)) #why are these dimensions? 3 **, 
         # N = np.zeros((board_width*board_height, board_width*board_height))
-        simulate(d, s, A, discount_factor, c, Q, N, ship_sizes)
-    return Q
+        sim(d, s, A, discount_factor, c, Q, N, ship_sizes)
+    return np.argmax(Q(s,a) for a in A) #<-- idk if this will work??
 
 # Add function to map State (number) to the board
     
-def simulate(d, s, A, discount_factor, c, Q, N, ship_sizes):
+def sim(d, s, A, discount_factor, c, Q, N, ship_sizes):
     if d <= 0:
         return 0
     if (s, A[0]) not in N.keys():
@@ -53,7 +70,7 @@ def simulate(d, s, A, discount_factor, c, Q, N, ship_sizes):
     # N = np.zeros((num_states, num_actions))
     a = simulate.explore(A, N, Q, c, s)
     s_prime, r = simulate.state_action_sim(s, ship_sizes, a)
-    q = r + discount_factor * simulate(d - 1, s_prime, A, discount_factor, c, Q, N, ship_sizes)
+    q = r + discount_factor * sim(d - 1, s_prime, A, discount_factor, c, Q, N, ship_sizes)
     N[(s, a)] += 1
     Q[(s, a)] += (q - Q[(s, a)]) / N[(s, a)]
     return q
