@@ -15,10 +15,10 @@ def main():
     # s,r = simulate.state_action_sim(b._boardHitMiss,b.ship_sizes,a)
 
     # run to test rollout
-    gamma = 0.999
-    d = 5
-    r = simulate.rollout(b._boardHitMiss,b.ship_sizes,gamma,d)
-    print("r = " + str(r))
+    # gamma = 0.999
+    # d = 5
+    # r = simulate.rollout(b._boardHitMiss,b.ship_sizes,gamma,d)
+    # print("r = " + str(r))
 
     #Not sure what this commented out code is for...
     # gamma = 0.999
@@ -32,20 +32,20 @@ def main():
     # r = simulate.rollout(b._boardHitMiss,gamma,d)
 
     #run this to play game
-    # s = b._boardHitMiss
-    # print(s)
-    # counter = 0
-    # while np.sum(b._boardHitMiss > 0) < board_width*board_height:
-    #     a = MCTS(s, board_width, board_height, ship_sizes, c=1, d=10, discount_factor=0.999, k_max=10)
-    #     if b._boardShipLocations[a[0],a[1]] == 1:
-    #         b._boardHitMiss[a[0],a[1]] = 2
-    #     else:
-    #         b._boardHitMiss[a[0],a[1]] = 1
-    #     s = b._boardHitMiss
-    #     counter = counter + 1
-    #     print(s)
-    # print("Number of moves to win = ")
-    # print(counter)
+    s = b._boardHitMiss
+    print(s)
+    counter = 0
+    while np.sum(b._boardHitMiss > 0) < board_width*board_height:
+        a = MCTS(s, board_width, board_height, ship_sizes, c=1, d=10, discount_factor=0.999, k_max=10)
+        if b._boardShipLocations[a[0],a[1]] == 1:
+            b._boardHitMiss[a[0],a[1]] = 2
+        else:
+            b._boardHitMiss[a[0],a[1]] = 1
+        s = b._boardHitMiss
+        counter = counter + 1
+        print(s)
+    print("Number of moves to win = ")
+    print(counter)
 
     #run this to play with random strategy
     # A = []
