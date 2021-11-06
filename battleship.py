@@ -52,7 +52,12 @@ class Battleship():
               for i in range(key):
                 self._boardShipLocations[x_coord + i][y_coord] = 1
               isPiecePlaced = True
+    print("Ship Locations")
     print(self._boardShipLocations)
     return self._boardShipLocations
+
+  def refreshHitMiss(self):
+    self._boardHitMiss = np.zeros((self.board_height,self.board_width), dtype=np.int8)
+    return self._boardHitMiss
 
 Battleship().generateRandomBoard()

@@ -38,11 +38,12 @@ def state_action_sim(s, ship_sizes, *args):
     s[a[0],a[1]] = 1 + np.random.binomial(n, p) #hit = 2, miss = 1, not guessed = 0
     return s, r
 
-def rollout(s, gamma, d):
-    if (d <= 0) | (np.sum(s == 0) == 0):
+def rollout(s,ship_sizes,gamma, d):
+    tot_num_hits = np.sum([ship_length*num_ships for ship_length, num_ships in ship_sizes.items()])
+    if (d <= 0) or (np.sum(s == 0) == 0) or (np.sum(s == 2) > tot_num_hits):
         return 0
-    s, r = state_action_sim(s)
-    return r + gamma*rollout(s, gamma, d - 1)
+    s, r = state_action_sim(s,ship_sizes)
+    return r + gamma*rollout(s,ship_sizes, gamma, d - 1)
 
 def rewards(s):
     total_guessed = np.sum(s > 0)
@@ -53,23 +54,26 @@ def rewards(s):
 
 def simulated_counts(s, ship_sizes):
     counts = np.zeros(np.shape(s))
-    num_samples = 10000
+    num_samples = 1000
     for i in range(num_samples):
         available_space = (s != 1)
         for ship_length, num_ships in ship_sizes.items(): #will work better if ship sizes is organized in order of largests ship first
             for ship in range(num_ships):
-                x1,y1,x2,y2 = try_to_place(ship_length,available_space, s)
-                if (x1 != x2) | (y1 != y2):
-                    counts[y1:y2+1,x1:x2+1] += 1 #upper leftmost corner is x,y = 0,0
-                    available_space[y1:y2+1,x1:x2+1] = 0
+                if ship_length < np.sum(available_space):
+                    x1,y1,x2,y2 = try_to_place(ship_length,available_space, s)
+                    if (x1 != x2) or (y1 != y2):
+                        counts[y1:y2+1,x1:x2+1] += 1 #upper leftmost corner is x,y = 0,0
+                        available_space[y1:y2+1,x1:x2+1] = 0
     return counts
 
-# Notes: if can not place with hits (i.e. fully surrounded by misses) need way of guessing non-hits
-# need a way to check that we don't try to add a ship if it means that tot_num_ship_points < hits + current_ship_length
-# handle edge case where nothing is placed and probability is all Nan or zero
-# fix probability s.t. no divide by zero
+# Notes: because there are so many combinations of ship locations, the probability of having a ship
+# hit in the beginning of the game is low --> no hits till later in game
+# (towards the end of the game this isn't always the case)
+# maybe we can increase the probability a bit? depending on how many guesses are left.
+# could also try making transition probabilities completely random if it runs too slow (regardless
+# would be good to compare performance...)
 def try_to_place(ship_length, available_space, s):
-    hits_left = ((s == 2) & (available_space == 1))
+    hits_left = np.logical_and((s == 2),(available_space == 1))
     idx_hits_left = np.where(hits_left == 1)
     idx_available_space = np.where(available_space == 1)
 
@@ -78,7 +82,7 @@ def try_to_place(ship_length, available_space, s):
     num_attempts = 0
     total_allowed_attempts = 20
     while num_attempts < total_allowed_attempts:
-        if np.size(idx_hits_left) > 0 & (num_attempts < 0.5*total_allowed_attempts):
+        if np.size(idx_hits_left) > 0 and (num_attempts < 0.5*total_allowed_attempts):
             idx = random.choice(range(np.size(idx_hits_left[0])))
             x1 = idx_hits_left[1][idx]
             y1 = idx_hits_left[0][idx]
@@ -90,25 +94,28 @@ def try_to_place(ship_length, available_space, s):
         if orientation == 0: #go right 
             x2 = x1 + ship_length - 1
             y2 = y1
-            if (x2 < s.shape[1]) & (np.sum(available_space[y1:y2+1,x1:x2+1]) == ship_length): 
+            if (x2 < s.shape[1]) and (np.sum(available_space[y1:y2+1,x1:x2+1]) == ship_length): 
                 return x1,y1,x2,y2
         elif orientation == 1: #go down
             x2 = x1 
             y2 = y1 + ship_length - 1
-            if (y2 < s.shape[0]) & (np.sum(available_space[y1:y2+1,x1:x2+1]) == ship_length): 
+            if (y2 < s.shape[0]) and (np.sum(available_space[y1:y2+1,x1:x2+1]) == ship_length): 
                 return x1,y1,x2,y2
         elif orientation == 2: #go left 
             x2 = x1 - (ship_length - 1)
             y2 = y1 
-            if (x2 >= 0) & (y2 < s.shape[0]) & (np.sum(available_space[y1:y2+1,x2:x1+1]) == ship_length): 
+            if (x2 >= 0) and (y2 < s.shape[0]) and (np.sum(available_space[y1:y2+1,x2:x1+1]) == ship_length): 
                 return x2,y1,x1,y2
         else: #go up
             x2 = x1 
             y2 = y1 - (ship_length - 1)
-            if (y2 >= 0) & (np.sum(available_space[y2:y1+1,x1:x2+1]) == ship_length): 
+            if (y2 >= 0) and (np.sum(available_space[y2:y1+1,x1:x2+1]) == ship_length): 
                 return x1,y2,x2,y1
         num_attempts += 1
     return x1,y1,x1,y1
 
 def transition_probability(counts):
-    return counts/np.sum(counts)
+    if np.sum(counts) == 0:
+        return np.zeros(np.shape(counts))
+    else:
+        return counts/np.sum(counts)

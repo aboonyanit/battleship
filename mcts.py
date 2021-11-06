@@ -4,7 +4,6 @@ import numpy as np
 
 
 def main():
-    print('Ship Locations:')
     board_width = 4
     board_height = 4
     ship_sizes = {3:1,2:1}
@@ -18,7 +17,8 @@ def main():
     # run to test rollout
     # gamma = 0.999
     # d = 16
-    # r = simulate.rollout(b._boardHitMiss,gamma,d)
+    # r = simulate.rollout(b._boardHitMiss,b.ship_sizes,gamma,d)
+    # print("r = " + str(r))
 
     #Not sure what this commented out code is for...
     # gamma = 0.999
@@ -31,17 +31,52 @@ def main():
     #         A.append((i,j))
     # r = simulate.rollout(b._boardHitMiss,gamma,d)
 
+    #run this to play game
     s = b._boardHitMiss
     print(s)
-    while np.sum(b._boardHitMiss > 0) > board_width*board_height:
-        a = MCTS(s, board_width, board_height, ship_sizes, c=1, d=10, discount_factor=0.95, k_max=10)
+    counter = 0
+    while np.sum(b._boardHitMiss > 0) < board_width*board_height:
+        a = MCTS(s, board_width, board_height, ship_sizes, c=1, d=10, discount_factor=0.999, k_max=10)
         if b._boardShipLocations[a[0],a[1]] == 1:
-            b._boardHitMiss[a[0],a[1]] == 2
+            b._boardHitMiss[a[0],a[1]] = 2
         else:
-            b._boardHitMiss[a[0],a[1]] == 1
+            b._boardHitMiss[a[0],a[1]] = 1
         s = b._boardHitMiss
+        counter = counter + 1
         print(s)
+    print("Number of moves to win = ")
+    print(counter)
 
+    #run this to play with random strategy
+    # A = []
+    # for i in range(board_width):
+    #     for j in range(board_height):
+    #         A.append((i,j))
+    # tot_num_hits = np.sum([ship_length*num_ships for ship_length, num_ships in b.ship_sizes.items()])
+    # num_sims = 50
+    # num_moves_to_win = 0
+    # for j in range(num_sims):
+    #     b = battleship.Battleship(board_width,board_height, ship_sizes)
+    #     b.generateRandomBoard()
+    #     counter = 0
+    #     A_idxs = [i for i in range(int(np.size(A)/2))]
+    #     while np.sum(b._boardHitMiss > 1) != tot_num_hits and np.size(A_idxs) > 0:
+    #         idx = np.random.choice(A_idxs,replace=False)
+    #         A_idxs.remove(idx)
+    #         a = A[idx]
+    #         if b._boardShipLocations[a[0],a[1]] == 1:
+    #             b._boardHitMiss[a[0],a[1]] = 2
+    #         else:
+    #             b._boardHitMiss[a[0],a[1]] = 1
+    #         counter += 1
+    #         # print("Guess #" + str(counter))
+    #         # print(b._boardHitMiss)
+    #     # b.refreshHitMiss()
+    #     num_moves_to_win += counter
+    #     # print("Number of moves to win (random policy) = ")
+    #     # print(counter)
+    # num_moves_to_win /= num_sims
+    # print("Average number of moves to win with random policy = " + str(num_moves_to_win))
 
 def MCTS(s, board_width, board_height, ship_sizes, c, d, discount_factor, k_max):
     A = []
