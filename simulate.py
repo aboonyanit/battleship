@@ -18,22 +18,75 @@ def explore(A, N, Q, c, s):
             maxA = a
     return maxA
 
+#best action with actual probability of hit
 def state_action_sim(s, ship_sizes, *args):
-    """Compute the gradient of the loss with respect to theta."""
     r = rewards(s)
     counts = simulated_counts(s, ship_sizes)
     idx_hits = np.where(s == 2)
     for i in range(np.size(idx_hits[0])): #don't want to pick a location we've already hit
         counts[idx_hits[0][i],idx_hits[1][i]] = 0
     Ts = transition_probability(counts)
-    idxs = np.argmax(Ts) #if we wanted our rollout policy to guess the maximum probability of a hit
-    n = 1; #number of trials
     a = np.array([])
     if len(args) > 0:
         a = args[0]
     else:
         i,j = np.unravel_index(Ts.argmax(), Ts.shape)
         a = np.array([i,j])
+    n = 1 #number of trials
+    p = Ts[a[0],a[1]] #probabiliy of success
+    s[a[0],a[1]] = 1 + np.random.binomial(n, p) #hit = 2, miss = 1, not guessed = 0
+    return s, r
+
+# best action, 0.5 probability of hit
+def state_action_sim_rand1(s, ship_sizes, *args):
+    r = rewards(s)
+    counts = simulated_counts(s, ship_sizes)
+    idx_hits = np.where(s == 2)
+    for i in range(np.size(idx_hits[0])): #don't want to pick a location we've already hit
+        counts[idx_hits[0][i],idx_hits[1][i]] = 0
+    Ts = transition_probability(counts)
+    a = np.array([])
+    if len(args) > 0:
+        a = args[0]
+    else:
+        i,j = np.unravel_index(Ts.argmax(), Ts.shape)
+        a = np.array([i,j])
+    n = 1 #number of trials
+    p = 0.5 #probabiliy of success
+    s[a[0],a[1]] = 1 + np.random.binomial(n, p) #hit = 2, miss = 1, not guessed = 0
+    return s, r
+
+# random action, 0.5 probability of hit
+def state_action_sim_rand2(s, ship_sizes, *args):
+    r = rewards(s)
+    a = np.array([])
+    if len(args) > 0:
+        a = args[0]
+    else:
+        idx_available_guesses = np.where(s == 0)
+        idx = random.choice(range(np.size(idx_available_guesses[0])))
+        a = [idx_available_guesses[0][idx], idx_available_guesses[1][idx]]
+    n = 1 #number of trials
+    p = 0.5
+    s[a[0],a[1]] = 1 + np.random.binomial(n, p) #hit = 2, miss = 1, not guessed = 0
+    return s, r
+
+# random action, actual probability of hit
+def state_action_sim_rand3(s, ship_sizes, *args):
+    r = rewards(s)
+    counts = simulated_counts(s, ship_sizes)
+    idx_hits = np.where(s == 2)
+    for i in range(np.size(idx_hits[0])): #don't want to pick a location we've already hit
+        counts[idx_hits[0][i],idx_hits[1][i]] = 0
+    Ts = transition_probability(counts)
+    a = np.array([])
+    if len(args) > 0:
+        a = args[0]
+    else:
+        idx_available_guesses = np.where(s == 0)
+        idx = random.choice(range(np.size(idx_available_guesses[0])))
+        a = [idx_available_guesses[0][idx], idx_available_guesses[1][idx]]
+    n = 1 #number of trials
     p = Ts[a[0],a[1]] #probabiliy of success
     s[a[0],a[1]] = 1 + np.random.binomial(n, p) #hit = 2, miss = 1, not guessed = 0
     return s, r
@@ -67,7 +120,7 @@ def simulated_counts(s, ship_sizes):
     return counts
 
 # Notes: because there are so many combinations of ship locations, the probability of having a ship
-# hit in the beginning of the game is low --> no hits till later in game
+# hit in the beginning of the game is low --> no hits till later in game (meaning we don't get any rewards if we don't go to full depth)
 # (towards the end of the game this isn't always the case)
 # maybe we can increase the probability a bit? depending on how many guesses are left.
 # could also try making transition probabilities completely random if it runs too slow (regardless
