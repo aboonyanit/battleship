@@ -8,14 +8,26 @@ def explore(A, N, Q, c, s):
     # c: exploration constant
     # s: current state
     # A: action space
-    numVisits = sum(N[s, a] for a in A)
+    s_tup = tuple(map(tuple, s))
+
+    print(N)
+    numVisits = 0
+    for a in A:
+        s_a_pair = s_tup + tuple(a)
+        if s_a_pair in N.keys():
+            numVisits += N[s_a_pair]
     maxVal = -1*float("Inf")
     maxA = None
     for a in A:
-        val = Q[s, a] + c * math.sqrt(math.log(numVisits) / N[s, a])
-        if val > maxVal:
-            maxVal = val
-            maxA = a
+        s_a_pair = s_tup + tuple(a)
+        if s_a_pair in N.keys():
+            if N[s_a_pair] == 0:
+                val = float('inf')
+            else:
+                val = Q[s_a_pair] + c * math.sqrt(math.log(numVisits) / N[s_a_pair])
+            if val > maxVal:
+                maxVal = val
+                maxA = a
     return maxA
 
 #best action with actual probability of hit
