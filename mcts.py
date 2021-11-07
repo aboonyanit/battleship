@@ -35,7 +35,8 @@ def main():
     s = b._boardHitMiss
     print(s)
     counter = 0
-    while np.sum(b._boardHitMiss > 0) < board_width*board_height:
+    tot_num_hits = np.sum([ship_length*num_ships for ship_length, num_ships in ship_sizes.items()])
+    while np.sum(b._boardHitMiss > 0) < board_width*board_height  and (np.sum(s == 2) < tot_num_hits):
         a = MCTS(s, board_width, board_height, ship_sizes, c=1, d=10, discount_factor=0.999, k_max=10)
         if b._boardShipLocations[a[0],a[1]] == 1:
             b._boardHitMiss[a[0],a[1]] = 2

@@ -10,7 +10,7 @@ def explore(A, N, Q, c, s):
     # A: action space
     s_tup = tuple(map(tuple, s))
 
-    print(N)
+    # print(N)
     numVisits = 0
     for a in A:
         s_a_pair = s_tup + tuple(a)
@@ -105,7 +105,7 @@ def state_action_sim_rand3(s, ship_sizes, *args):
 
 def rollout(s,ship_sizes,gamma, d):
     tot_num_hits = np.sum([ship_length*num_ships for ship_length, num_ships in ship_sizes.items()])
-    if (d <= 0) or (np.sum(s == 0) == 0) or (np.sum(s == 2) > tot_num_hits):
+    if (d <= 0) or (np.sum(s == 0) == 0) or (np.sum(s == 2) == tot_num_hits):
         return 0
     s, r = state_action_sim(s,ship_sizes)
     return r + gamma*rollout(s,ship_sizes, gamma, d - 1)
