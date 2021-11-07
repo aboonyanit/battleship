@@ -8,7 +8,7 @@ import numpy as np
 def main():
     board_width = 6
     board_height = 6
-    ship_sizes = {3:1, 2:2}
+    ship_sizes = {3:2, 2:2}
     b = battleship.Battleship(board_width,board_height, ship_sizes)
     b.generateRandomBoard()
 
