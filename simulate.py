@@ -9,8 +9,6 @@ def explore(A, N, Q, c, s):
     # s: current state
     # A: action space
     s_tup = tuple(map(tuple, s))
-
-    # print(N)
     numVisits = 0
     for a in A:
         s_a_pair = s_tup + tuple(a)
@@ -107,7 +105,7 @@ def rollout(s,ship_sizes,gamma, d):
     tot_num_hits = np.sum([ship_length*num_ships for ship_length, num_ships in ship_sizes.items()])
     if (d <= 0) or (np.sum(s == 0) == 0) or (np.sum(s == 2) == tot_num_hits):
         return 0
-    s, r = state_action_sim(s,ship_sizes)
+    s, r = state_action_sim_rand1(s,ship_sizes)
     return r + gamma*rollout(s,ship_sizes, gamma, d - 1)
 
 def rewards(s):
@@ -119,7 +117,7 @@ def rewards(s):
 
 def simulated_counts(s, ship_sizes):
     counts = np.zeros(np.shape(s))
-    num_samples = 1000
+    num_samples = 100
     for i in range(num_samples):
         available_space = (s != 1)
         for ship_length, num_ships in ship_sizes.items(): #will work better if ship sizes is organized in order of largests ship first

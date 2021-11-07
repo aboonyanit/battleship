@@ -2,11 +2,13 @@ import battleship
 import simulate
 import numpy as np
 
-
+# board_width: int = 8,
+# board_height: int = 8,
+# ship_sizes = {5: 1, 4: 1, 3: 2, 2: 1} #key: ship size, value: number of ships
 def main():
-    board_width = 4
-    board_height = 4
-    ship_sizes = {3:1,2:1}
+    board_width = 6
+    board_height = 6
+    ship_sizes = {3:1, 2:2}
     b = battleship.Battleship(board_width,board_height, ship_sizes)
     b.generateRandomBoard()
 
@@ -33,11 +35,17 @@ def main():
 
     #run this to play game
     s = b._boardHitMiss
+    A = []
+    for i in range(board_width):
+        for j in range(board_height):
+            A.append((i,j))
     print(s)
     counter = 0
     tot_num_hits = np.sum([ship_length*num_ships for ship_length, num_ships in ship_sizes.items()])
     while np.sum(b._boardHitMiss > 0) < board_width*board_height  and (np.sum(s == 2) < tot_num_hits):
-        a = MCTS(s, board_width, board_height, ship_sizes, c=1, d=10, discount_factor=0.999, k_max=10)
+        s_new=s.copy()
+        a = MCTS(s_new, A, board_width, board_height, ship_sizes, c=1, d=10, discount_factor=0.9, k_max=10)
+        print("action: ", a)
         if b._boardShipLocations[a[0],a[1]] == 1:
             b._boardHitMiss[a[0],a[1]] = 2
         else:
@@ -79,25 +87,26 @@ def main():
     # num_moves_to_win /= num_sims
     # print("Average number of moves to win with random policy = " + str(num_moves_to_win))
 
-def MCTS(s, board_width, board_height, ship_sizes, c, d, discount_factor, k_max):
-    A = []
-    for i in range(board_width):
-        for j in range(board_height):
-            A.append((i,j))
+def MCTS(s, A,  board_width, board_height, ship_sizes, c, d, discount_factor, k_max):
+
     Q = {}
     N = {}
     for k in range(k_max):
-        sim(d, s, A, discount_factor, c, Q, N, ship_sizes)
+        s_copy = s.copy()
+        sim(d, s_copy, A, discount_factor, c, Q, N, ship_sizes)
     max_Q_val = -float('inf')
-    max_A = A[0]
-    for a in A:
+    max_A = 0
+    for i in range(len(A)):
+        a = A[i]
         s_tup = tuple(map(tuple, s))
         s_action_pair = s_tup + tuple(a)
         if s_action_pair in Q.keys():
             if Q[s_action_pair] > max_Q_val:
                 max_Q_val = Q[s_action_pair]
-                max_A = a
-    return max_A
+                max_A = i
+    final = A[max_A]
+    del A[max_A]
+    return final
     # return np.argmax(Q(s,a) for a in A) #<-- idk if this will work??
 
 # Add function to map State (number) to the board
@@ -109,12 +118,16 @@ def sim(d, s, A, discount_factor, c, Q, N, ship_sizes):
     s_action_pair = s_tup + tuple(A[0])
     if s_action_pair not in N.keys():
         for a in A:
+            s_action_pair = s_tup + tuple(a)
             N[s_action_pair] = 0
             Q[s_action_pair] = 0
-        return simulate.rollout(s, ship_sizes, discount_factor, d)
+        s_copy = s.copy()
+        return simulate.rollout(s_copy, ship_sizes, discount_factor, d)
     a = simulate.explore(A, N, Q, c, s)
-    s_prime, r = simulate.state_action_sim(s, ship_sizes, a)
+    s_copy = s.copy()
+    s_prime, r = simulate.state_action_sim_rand1(s_copy, ship_sizes, a)
     q = r + discount_factor * sim(d - 1, s_prime, A, discount_factor, c, Q, N, ship_sizes)
+    s_action_pair = s_tup + a
     N[s_action_pair] += 1
     Q[s_action_pair] += (q - Q[s_action_pair]) / N[s_action_pair]
     return q
