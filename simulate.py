@@ -16,16 +16,17 @@ def explore(A, N, Q, c, s):
             numVisits += N[s_a_pair]
     maxVal = -1*float("Inf")
     maxA = None
-    for a in A:
+    A_copy = A.copy()
+    random.shuffle(A_copy) #ensures that the first action isn't always picked first
+    for a in A_copy:
         s_a_pair = s_tup + tuple(a)
-        if s_a_pair in N.keys():
-            if N[s_a_pair] == 0:
-                val = float('inf')
-            else:
-                val = Q[s_a_pair] + c * math.sqrt(math.log(numVisits) / N[s_a_pair])
-            if val > maxVal:
-                maxVal = val
-                maxA = a
+        if N[s_a_pair] == 0:
+            val = float('inf')
+        else:
+            val = Q[s_a_pair] + c * math.sqrt(math.log(numVisits) / N[s_a_pair])
+        if val > maxVal:
+            maxVal = val
+            maxA = a
     return maxA
 
 #best action with actual probability of hit
