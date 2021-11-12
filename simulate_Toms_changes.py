@@ -33,7 +33,7 @@ def explore(A, N, Q, c, s):
 def state_action_sim(s, ship_sizes, *args):
     r = rewards(s)
     counts = simulated_counts(s, ship_sizes)
-    idx_hits = np.where(s == 2)
+    idx_hits = np.where(s >= 2)
     for i in range(np.size(idx_hits[0])): #don't want to pick a location we've already hit
         counts[idx_hits[0][i],idx_hits[1][i]] = 0
     Ts = transition_probability(counts)
@@ -52,7 +52,7 @@ def state_action_sim(s, ship_sizes, *args):
 def state_action_sim_rand1(s, ship_sizes, *args):
     r = rewards(s)
     counts = simulated_counts(s, ship_sizes)
-    idx_hits = np.where(s == 2)
+    idx_hits = np.where(s >= 2)
     for i in range(np.size(idx_hits[0])): #don't want to pick a location we've already hit
         counts[idx_hits[0][i],idx_hits[1][i]] = 0
     Ts = transition_probability(counts)
@@ -86,7 +86,7 @@ def state_action_sim_rand2(s, ship_sizes, *args):
 def state_action_sim_rand3(s, ship_sizes, *args):
     r = rewards(s)
     counts = simulated_counts(s, ship_sizes)
-    idx_hits = np.where(s == 2)
+    idx_hits = np.where(s >= 2)
     for i in range(np.size(idx_hits[0])): #don't want to pick a location we've already hit
         counts[idx_hits[0][i],idx_hits[1][i]] = 0
     Ts = transition_probability(counts)
@@ -104,7 +104,7 @@ def state_action_sim_rand3(s, ship_sizes, *args):
 
 def rollout(s,ship_sizes,gamma, d):
     tot_num_hits = np.sum([ship_length*num_ships for ship_length, num_ships in ship_sizes.items()])
-    if (d <= 0) or (np.sum(s == 0) == 0) or (np.sum(s == 2) == tot_num_hits):
+    if (d <= 0) or (np.sum(s == 0) == 0) or (np.sum(s >= 2) == tot_num_hits):
         return 0
     s, r = state_action_sim_rand3(s,ship_sizes)
     return r + gamma*rollout(s,ship_sizes, gamma, d - 1)
@@ -114,13 +114,13 @@ def rewards(s):
     if total_guessed == 0:
         return 0
     else:
-        return (np.sum(s == 2) - np.sum(s == 1))/np.sum(s > 0) #number of hits over number of guesses
+        return (np.sum(s >= 2) - np.sum(s == 1))/np.sum(s > 0) #number of hits over number of guesses
 
 def simulated_counts(s, ship_sizes):
     counts = np.zeros(np.shape(s))
-    num_samples = 250
+    num_samples = 200
     for i in range(num_samples):
-        available_space = (s != 1)
+        available_space = np.logical_or((s == 0),(s == 2))
         for ship_length, num_ships in ship_sizes.items(): #will work better if ship sizes is organized in order of largests ship first
             for ship in range(num_ships):
                 if ship_length < np.sum(available_space):
@@ -144,7 +144,7 @@ def try_to_place(ship_length, available_space, s):
     x1 = 0
     y1 = 0
     num_attempts = 0
-    total_allowed_attempts = 30
+    total_allowed_attempts = 20
     multiplier = 1
     while num_attempts < total_allowed_attempts:
         if np.size(idx_hits_left) > 0 and (num_attempts < 0.75*total_allowed_attempts):

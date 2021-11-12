@@ -42,12 +42,18 @@ def main():
     print(s)
     counter = 0
     tot_num_hits = np.sum([ship_length*num_ships for ship_length, num_ships in ship_sizes.items()])
-    while np.sum(b._boardHitMiss > 0) < board_width*board_height  and (np.sum(s == 2) < tot_num_hits):
+    while np.sum(b._boardHitMiss > 0) < board_width*board_height  and (np.sum(s >= 2) < tot_num_hits):
         s_new=s.copy()
-        a = MCTS(s_new, A, board_width, board_height, ship_sizes, c=2, d=3, discount_factor=0.5, k_max=2*board_width*board_height)
+        a = MCTS(s_new, A, board_width, board_height, ship_sizes, c=2, d=3, discount_factor=0.5, k_max=board_width*board_height)
         print("action: ", a)
-        if b._boardShipLocations[a[0],a[1]] == 1:
-            b._boardHitMiss[a[0],a[1]] = 2
+        if b._boardShipLocations[a[0],a[1]] > 0:
+            ship_number = b._boardShipLocations[a[0],a[1]] 
+            idxs_ship_number = np.where(b._boardShipLocations == ship_number)
+            ship_length = len(idxs_ship_number[0])
+            if np.sum(b._boardHitMiss[idxs_ship_number[0],idxs_ship_number[1]] == 2) == ship_length - 1:
+                b._boardHitMiss[idxs_ship_number[0],idxs_ship_number[1]] = 3
+            else:
+                b._boardHitMiss[a[0],a[1]] = 2
         else:
             b._boardHitMiss[a[0],a[1]] = 1
         s = b._boardHitMiss
