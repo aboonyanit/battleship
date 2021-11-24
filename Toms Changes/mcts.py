@@ -6,32 +6,14 @@ import numpy as np
 # board_height: int = 8,
 # ship_sizes = {5: 1, 4: 1, 3: 2, 2: 1} #key: ship size, value: number of ships
 def main():
-    board_width = 6
-    board_height = 6
-    ship_sizes = {3:2, 2:2}
+    # board_width = 6
+    # board_height = 6
+    # ship_sizes = {3:2, 2:2}
+    board_width: int = 8
+    board_height: int = 8
+    ship_sizes = {5: 1, 4: 1, 3: 2, 2: 1} #key: ship size, value: number of ships
     b = battleship.Battleship(board_width,board_height, ship_sizes)
     b.generateRandomBoard()
-
-    # run to test state_action_sim
-    # a = [1,1] #example of an action
-    # s,r = simulate.state_action_sim(b._boardHitMiss,b.ship_sizes,a)
-
-    # run to test rollout
-    # gamma = 0.999
-    # d = 5
-    # r = simulate.rollout(b._boardHitMiss,b.ship_sizes,gamma,d)
-    # print("r = " + str(r))
-
-    #Not sure what this commented out code is for...
-    # gamma = 0.999
-    # d = 16
-    # Q = np.zeros((board_width*board_height, board_width*board_height))
-    # N = np.zeros((board_width*board_height, board_width*board_height))
-    # A = []
-    # for i in range(board_width):
-    #     for j in range(board_height):
-    #         A.append((i,j))
-    # r = simulate.rollout(b._boardHitMiss,gamma,d)
 
     #run this to play game
     s = b._boardHitMiss
@@ -68,7 +50,7 @@ def main():
     #     for j in range(board_height):
     #         A.append((i,j))
     # tot_num_hits = np.sum([ship_length*num_ships for ship_length, num_ships in b.ship_sizes.items()])
-    # num_sims = 50
+    # num_sims = 100
     # num_moves_to_win = 0
     # for j in range(num_sims):
     #     b = battleship.Battleship(board_width,board_height, ship_sizes)
@@ -79,7 +61,7 @@ def main():
     #         idx = np.random.choice(A_idxs,replace=False)
     #         A_idxs.remove(idx)
     #         a = A[idx]
-    #         if b._boardShipLocations[a[0],a[1]] == 1:
+    #         if b._boardShipLocations[a[0],a[1]] > 0:
     #             b._boardHitMiss[a[0],a[1]] = 2
     #         else:
     #             b._boardHitMiss[a[0],a[1]] = 1
